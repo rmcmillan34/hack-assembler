@@ -37,7 +37,7 @@ class Parser:
 
     def encode(self):
         with open("output.asm", 'r') as outf:
-            with open("binary.asm", 'w') as binf:
+            with open("binary.hack", 'w') as binf:
                 for line in outf:
                     # Check for A Instruction
                     if line[0] == "@":
@@ -52,7 +52,7 @@ class Parser:
                         #Create new C instruction
                         C_inst = '0000000000000000'
                         offset = 0
-                        
+
                         #Set the Jump bits
                         if 'JGT' in line:
                             C_inst = C_inst[:13] + '001'
@@ -80,19 +80,19 @@ class Parser:
                                 C_inst = C_inst[:10] + "001" + C_inst[13:]
                             elif split_line[0] == "D":
                                 C_inst =  C_inst[:10] + "010" + C_inst[13:]
-                            elif split_line[0] == "DM":
+                            elif split_line[0] == "DM" or split_line[0] == "MD":
                                 C_inst = C_inst[:10] + "011" + C_inst[13:]
                             elif split_line[0] == "A":
                                 C_inst = C_inst[:10] + "100" + C_inst[13:]
-                            elif split_line[0] == "AM":
+                            elif split_line[0] == "AM" or split_line[0] == "MA":
                                 C_inst = C_inst[:10] + "101" + C_inst[13:]
-                            elif split_line[0] == "AD":
+                            elif split_line[0] == "AD" or split_line[0] == "DA":
                                 C_inst = C_inst[:10] + "110" + C_inst[13:]
-                            elif split_line[0] == "ADM":
+                            elif "A" in split_line[0] and "D" in split_line[0] and "M" in split_line[0]:
                                 C_inst = C_inst[:10] + "111" + C_inst[13:]
                             else:
                                 C_inst = "000"
-                        
+
                         #Set the comp bits if there is a destination
                         if len(split_line) > 1:
                             if split_line[0+offset][:-1] == "0":
@@ -114,7 +114,7 @@ class Parser:
                             elif split_line[0+offset][:-1] == "-A":
                                 C_inst = "1110110011" + C_inst[10:]
                             elif split_line[0+offset][:-1] == "D+1":
-                                C_inst = "1110111111" + C_inst[10:]
+                                C_inst = "1110011111" + C_inst[10:]
                             elif split_line[0+offset][:-1] == "A+1":
                                 C_inst = "1110110111" + C_inst[10:]
                             elif split_line[0+offset][:-1] == "D-1":
@@ -144,7 +144,7 @@ class Parser:
                             elif split_line[0+offset][:-1] == "D+M":
                                 C_inst = "1111000010" + C_inst[10:]
                             elif split_line[0+offset][:-1] == "D-M":
-                                C_inst = "11111010011" + C_inst[10:]
+                                C_inst = "1111010011" + C_inst[10:]
                             elif split_line[0+offset][:-1] == "M-D":
                                 C_inst = "1111000111" + C_inst[10:]
                             elif split_line[0+offset][:-1] == "D&M":
@@ -213,17 +213,24 @@ class Parser:
 
 
     def fill_symbol_table(self):
+        # Iterate and extract label symbols to symbol table (START) .. etc FIRST PASS
         line_count = 0
         with open("output.asm", 'r') as f:
             for line in f:
+                if line[0] == '(' and not line[1:-2] in self.symbol_table:
+                    self.symbol_table[line[1:-2]] = line_count
+                    continue
+                line_count += 1
+            f.seek(0)
+
+
+        with open("output.asm", 'r') as g:
+            # SECOND PASS
+            for line in g:
                 if line[0] == '@' and not str.isdigit(line[1:-1]):
                     if not line[1:-1] in self.symbol_table:
                         self.symbol_table[line[1:-1]] = self.count
-                elif line[0] == '(':
-                    if not line[1:-2] in self.symbol_table:
-                        self.symbol_table[line[1:-2]] = line_count
-                self.count += 1
-                line_count += 1
+                        self.count += 1
 
         print(self.symbol_table)
 
