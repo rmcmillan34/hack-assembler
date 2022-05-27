@@ -1,11 +1,6 @@
-@0
-D=D+M
-@1
-Testline3
 @2
+D=A
 @3
-@Whatisthis
-@4
-@5
-@8
-@16
+D=D+A
+@0
+M=D

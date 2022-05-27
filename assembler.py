@@ -12,8 +12,6 @@ def main():
     # Instantiate a Parser class object
     parser = Parser(sys.argv[1])
 
-    parser.strip_whitespace()
-
 
 def valid_file(input):
     filename = input.split(".")
